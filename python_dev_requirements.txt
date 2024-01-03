@@ -1,0 +1,9 @@
+wheel
+six
+pyinstaller
+importlib_metadata
+loguru
+pipdeptree
+pip-tools
+black
+pylama[all]
