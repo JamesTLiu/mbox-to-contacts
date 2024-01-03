@@ -246,14 +246,16 @@ def _mbox_sender_fields_to_sender_emails_with_sender_names(
                 email = m.group()
             else:
                 raise ValueError(
-                    f"more than 1 @ in email section and unable to extract"
+                    "more than 1 @ in email section and unable to extract"
                     f" the 1st email: '{email}'"
                 )
 
         domain = email.split("@")[1]
 
         if not domain:
-            raise ValueError(f"Invalid email: no domain found (nothing after @): '{email}'")
+            raise ValueError(
+                f"Invalid email: no domain found (nothing after @): '{email}'"
+            )
 
         domain_parts = re.split(r"\W", domain)
         domain_parts.reverse()
