@@ -418,14 +418,14 @@ def get_contact_emails_with_names_from_mbox(
 ######################### End of library, example of use below
 
 
-def mbox_example():
+def mbox_from_to_fields_example():
     # Get "From" and "To" contacts from a .mbox file.
     emails_with_names = get_contact_emails_with_names_from_mbox(
         "All mail Including Spam and Trash.mbox",
     )
 
 
-def mbox_and_dump_fields_to_json_example():
+def mbox_from_to_fields_and_dump_fields_to_json_example():
     # Get "From" and "To" contacts from a .mbox file and dump "From" and
     # "To" fields to a .json file.
     emails_with_names = get_contact_emails_with_names_from_mbox(
@@ -434,7 +434,7 @@ def mbox_and_dump_fields_to_json_example():
     )
 
 
-def mbox_example2():
+def mbox_from_field_example():
     # Get only "From" contacts from a .mbox file and dump "From" fields to a
     # .json file.
     emails_with_names = get_contact_emails_with_names_from_mbox(
@@ -443,7 +443,7 @@ def mbox_example2():
     )
 
 
-def mbox_example3():
+def mbox_to_field_example():
     # Get only "To" contacts from a .mbox file and dump "To" fields to a
     # .json file.
     emails_with_names = get_contact_emails_with_names_from_mbox(
@@ -453,8 +453,9 @@ def mbox_example3():
 
 
 def json_example():
-    # Use a previously created .json file with "From" and "To" fields
-    # instead of reparsing the .mbox file for efficiency
+    # Use a previously created fields .json file (in this case with
+    # "From" and "To" fields) instead of reparsing the .mbox file for
+    # efficiency
     emails_with_names = (
         get_contact_emails_with_names_from_json_with_mbox_fields(
             "All mail Including Spam and Trash - From To fields.json",
