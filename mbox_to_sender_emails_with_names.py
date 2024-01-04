@@ -9,6 +9,7 @@ import logging
 from loguru import logger
 from gmail_mbox_parser import GmailMboxMessage
 
+logger.remove()
 logger.add(
     "log.txt",
     mode="w",
