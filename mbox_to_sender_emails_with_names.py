@@ -235,7 +235,7 @@ def _mbox_fields_to_emails_with_names(
     Args:
         mbox_sender_fields (Iterable[str]): The sender fields from mbox
             messages.
-        json_file_path (str, Path, optional): The path to the file to
+        out_file_path (str, Path, optional): The path to the file to
             write the result to in json if given. Defaults to None.
 
     Raises:
