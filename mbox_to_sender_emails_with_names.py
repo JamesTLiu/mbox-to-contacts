@@ -27,6 +27,9 @@ logger.add(
 )
 
 
+DEFAULT_OUT_PATH = "contacts.json"
+
+
 def _load_json(json_file_path: str) -> Any:
     """Deserialize data in a json file to a Python object.
 
@@ -236,7 +239,8 @@ def _mbox_fields_to_emails_with_names(
         mbox_sender_fields (Iterable[str]): The sender fields from mbox
             messages.
         out_file_path (str, Path, optional): The path to the file to
-            write the result to in json if given. Defaults to None.
+            write the result to in json. If no path is given,
+            DEFAULT_OUT_PATH will be used. Defaults to None.
 
     Raises:
         ValueError: @ not found in an email.
@@ -306,12 +310,14 @@ def _mbox_fields_to_emails_with_names(
         hashable_email_to_sender_names, key=to_domain_and_email
     )
 
-    if out_file_path:
-        _dump_to_json_file(sender_emails_with_sender_names, out_file_path)
-        logger.info(
-            "mbox email addresses with their names written to"
-            f" '{Path(out_file_path).resolve()}"
-        )
+    if not out_file_path:
+        out_file_path = DEFAULT_OUT_PATH
+
+    _dump_to_json_file(sender_emails_with_sender_names, out_file_path)
+    logger.info(
+        "mbox email addresses with their names written to"
+        f" '{Path(out_file_path).resolve()}"
+    )
 
     return sender_emails_with_sender_names
 
@@ -346,7 +352,7 @@ def get_contact_emails_with_names_from_json_with_mbox_fields(
 
 def get_contact_emails_with_names_from_mbox(
     mbox_file_path: str,
-    out_file_path: str | Path | None = "contacts.json",
+    out_file_path: str | Path | None = None,
     dump_fields_to_json=False,
     omit_from_fields: bool = False,
     omit_to_fields: bool = False,
