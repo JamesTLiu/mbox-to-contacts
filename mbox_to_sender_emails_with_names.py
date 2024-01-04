@@ -31,24 +31,24 @@ def main():
         )
 
     def mbox_from_to_fields_and_dump_fields_to_json_example():
-        # Get "From" and "To" contacts from a .mbox file and dump "From" and
-        # "To" fields to a .json file.
+        # Get "From" and "To" contacts from a .mbox file and dump "From"
+        # and "To" fields to a .json file.
         return get_contact_emails_with_names_from_mbox(
             "All mail Including Spam and Trash.mbox",
             dump_fields_to_json=True,
         )
 
     def mbox_from_field_example():
-        # Get only "From" contacts from a .mbox file and dump "From" fields
-        # to a .json file.
+        # Get only "From" contacts from a .mbox file and dump "From"
+        # fields to a .json file.
         return get_contact_emails_with_names_from_mbox(
             "All mail Including Spam and Trash.mbox",
             omit_to_fields=True,
         )
 
     def mbox_to_field_example():
-        # Get only "To" contacts from a .mbox file and dump "To" fields to a
-        # .json file.
+        # Get only "To" contacts from a .mbox file and dump "To" fields
+        # to a .json file.
         return get_contact_emails_with_names_from_mbox(
             "All mail Including Spam and Trash.mbox",
             omit_from_fields=True,
@@ -56,8 +56,8 @@ def main():
 
     def json_example():
         # Use a previously created fields .json file (in this case with
-        # "From" and "To" fields) instead of reparsing the .mbox file for
-        # efficiency
+        # "From" and "To" fields) instead of reparsing the .mbox file
+        # for efficiency.
         return (
             get_contact_emails_with_names_from_json_with_mbox_fields(
                 "All mail Including Spam and Trash - From To fields.json",
