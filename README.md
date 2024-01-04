@@ -37,10 +37,8 @@ A `.json` file with fields from the mbox file can be created and will be named a
 ```python
 def json_example():
     # Use a previously created fields .json file (in this case with "From" and "To" fields) instead of reparsing the .mbox file for efficiency.
-    return (
-        get_contact_emails_with_names_from_json_with_mbox_fields(
-            "All mail Including Spam and Trash - From To fields.json",
-        )
+    return get_contact_emails_with_names_from_json_with_mbox_fields(
+        "All mail Including Spam and Trash - From To fields.json",
     )
 ```
 
