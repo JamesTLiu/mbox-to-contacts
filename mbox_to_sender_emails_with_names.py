@@ -308,7 +308,7 @@ def json_mbox_sender_fields_to_sender_emails_with_names(
 
 def get_sender_emails_with_names_from_mbox(
     mbox_file_path: str,
-    out_file_path: str | Path | None = None,
+    out_file_path: str | Path | None = "contacts.json",
     dump_sender_fields_to_json=False,
 ) -> list[tuple[str, tuple]]:
     """Return a list of (email, sender_names) tuples for the messages in
@@ -353,19 +353,17 @@ def get_sender_emails_with_names_from_mbox(
 
 def mbox_example():
     # Use a .mbox file.
-    sender_emails_with_sender_names = get_sender_emails_with_names_from_mbox(
+    emails_with_names = get_sender_emails_with_names_from_mbox(
         "All mail Including Spam and Trash.mbox",
-        "sender_emails_with_sender_names.json",
-        True,
+        dump_sender_fields_to_json=True,
     )
 
 
 def json_example():
-    # Use a previously created sender fields .json file instead of
+    # Use a previously created fields .json file instead of
     # reparsing the .mbox file for efficiency
-    sender_emails_with_sender_names = (
+    emails_with_names = (
         json_mbox_sender_fields_to_sender_emails_with_names(
-            "All mail Including Spam and Trash - sender fields.json",
-            "sender_emails_with_sender_names.json",
+            "All mail Including Spam and Trash - fields.json",
         )
     )
