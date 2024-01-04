@@ -453,10 +453,10 @@ def mbox_example3():
 
 
 def json_example():
-    # Use a previously created fields .json file instead of
-    # reparsing the .mbox file for efficiency
+    # Use a previously created .json file with "From" and "To" fields
+    # instead of reparsing the .mbox file for efficiency
     emails_with_names = (
         get_contact_emails_with_names_from_json_with_mbox_fields(
-            "All mail Including Spam and Trash - fields.json",
+            "All mail Including Spam and Trash - From To fields.json",
         )
     )
