@@ -122,13 +122,13 @@ def _ensure_existing_json_file(path: Path | str) -> None:
 
 
 def _mbox_fields_to_email_and_names_dict(
-    mbox_sender_fields: Iterable[str],
+    mbox_fields: Iterable[str],
 ) -> defaultdict[str, set]:
     """Convert mbox sender fields to a dict mapping emails to their set
     of sender names.
 
     Args:
-        mbox_sender_fields (Iterable[str]): The sender fields of an
+        mbox_fields (Iterable[str]): The sender fields of an
             mbox file.
 
     Raises:
@@ -138,33 +138,33 @@ def _mbox_fields_to_email_and_names_dict(
         defaultdict[str, set]: A dict mapping emails to their set of
             sender names.
     """
-    email_to_sender_names = defaultdict(set)
+    email_to_names = defaultdict(set)
 
-    for sender in mbox_sender_fields:
-        match = re.search(
-            r"^(?P<sender_name>[^<>]*)<(?P<email>[^<>]*)>\s*$", sender
+    for sender in mbox_fields:
+        matches = re.finditer(
+            r"(?P<name>[^<>,]*)[<>]*(?P<email>[\w.]+@[\w.]+)", sender
         )
 
-        if not match:
-            match = re.search(
-                r"(?P<sender_name>^)(?P<email>[^<>]+@[^<>]+)$", sender
-            )
+        exists_match = False
 
-        if not match:
-            logger.info(
+        for match in matches:
+            email = match.group("email").strip()
+            name = match.group("name").strip()
+
+            if name:
+                email_to_names[email].add(name)
+            else:
+                email_to_names[email]
+
+            exists_match = True
+
+        if not exists_match:
+            logger.warning(
                 f"Skipping - No sender name + email found in field: {sender}"
             )
             continue
 
-        email = match.group("email").strip()
-        sender_name = match.group("sender_name").strip()
-
-        if sender_name:
-            email_to_sender_names[email].add(sender_name)
-        else:
-            email_to_sender_names[email]
-
-    return email_to_sender_names
+    return email_to_names
 
 
 def _dict_with_set_to_hashable(
