@@ -186,7 +186,7 @@ def _dict_with_set_to_hashable(
     )
 
 
-def _parse_mbox_file_to_contacts_list(
+def _parse_mbox_file_to_contacts_fields_list(
     mbox_file_path: str, omit_from_fields=False, omit_to_fields=False
 ) -> list[str]:
     """Return a list with the 'From' and 'To' fields in the mbox file.
@@ -379,7 +379,7 @@ def get_contact_emails_with_names_from_mbox(
 
     _ensure_existing_mbox_file(mbox_file_path)
 
-    fields = _parse_mbox_file_to_contacts_list(
+    fields = _parse_mbox_file_to_contacts_fields_list(
         mbox_file_path,
         omit_from_fields=omit_from_fields,
         omit_to_fields=omit_to_fields,
