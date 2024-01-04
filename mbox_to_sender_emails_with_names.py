@@ -380,6 +380,10 @@ def get_contact_emails_with_names_from_mbox(
 
     _ensure_existing_mbox_file(mbox_file_path)
 
+    if omit_from_fields and omit_to_fields:
+        logger.warning(f"Warning: From and To fields have both been omitted.")
+        return []
+
     fields = _parse_mbox_file_to_contacts_fields_list(
         mbox_file_path,
         omit_from_fields=omit_from_fields,
