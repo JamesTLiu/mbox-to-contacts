@@ -4,8 +4,27 @@ import re
 from pathlib import Path
 from collections import defaultdict
 from typing import *
-
+import sys
+import logging
+from loguru import logger
 from gmail_mbox_parser import GmailMboxMessage
+
+logger.add(
+    "log.txt",
+    mode="w",
+    level=logging.DEBUG,
+    enqueue=True,
+    backtrace=True,
+    diagnose=True,
+)
+
+logger.add(
+    sys.stdout,
+    level=logging.DEBUG,
+    enqueue=True,
+    backtrace=True,
+    diagnose=True,
+)
 
 
 def _load_json(json_file_path: str) -> Any:
@@ -129,7 +148,7 @@ def _mbox_fields_to_email_and_names_dict(
             )
 
         if not match:
-            print(
+            logger.info(
                 f"Skipping - No sender name + email found in field: {sender}"
             )
             continue
@@ -190,7 +209,7 @@ def _parse_mbox_file_to_contacts_list(
             if email_data.email_from:
                 contacts_list.append(email_data.email_from)
             else:
-                print(
+                logger.info(
                     f"skipping mbox message - empty 'From:' field: {email_obj}"
                 )
 
@@ -198,11 +217,11 @@ def _parse_mbox_file_to_contacts_list(
             if email_data.email_to:
                 contacts_list.append(email_data.email_to)
             else:
-                print(
+                logger.info(
                     f"skipping mbox message - empty 'To:' field: {email_obj}"
                 )
 
-    print(f"entries in '{mbox_file_path}': {num_entries}")
+    logger.info(f"entries in '{mbox_file_path}': {num_entries}")
     return contacts_list
 
 
@@ -289,7 +308,7 @@ def _mbox_fields_to_emails_with_names(
 
     if out_file_path:
         _dump_to_json_file(sender_emails_with_sender_names, out_file_path)
-        print(
+        logger.info(
             "mbox email addresses with their names written to"
             f" '{Path(out_file_path).resolve()}"
         )
@@ -365,7 +384,7 @@ def get_contact_emails_with_names_from_mbox(
         dump_json_path = mbox_path.parent / (mbox_path.stem + " - fields.json")
 
         _dump_to_json_file(fields, dump_json_path)
-        print(f"mbox fields written to '{dump_json_path.resolve()}'")
+        logger.info(f"mbox fields written to '{dump_json_path.resolve()}'")
 
     return _mbox_fields_to_emails_with_names(fields, out_file_path)
 
