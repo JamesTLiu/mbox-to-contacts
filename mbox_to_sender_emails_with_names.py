@@ -142,7 +142,7 @@ def _mbox_fields_to_email_and_names_dict(
 
     for sender in mbox_fields:
         matches = re.finditer(
-            r"(?P<name>[^<>,]*)[<>]*(?P<email>[\w.]+@[\w.]+)", sender
+            r"(?P<name>[^<>,]*)[<]*(?P<email>[\w.]+@[\w.]+)", sender
         )
 
         exists_match = False
