@@ -14,9 +14,6 @@ from loguru import logger
 from gmail_mbox_parser import GmailMboxMessage
 
 
-logging_format = (
-    "{time:MMMM D, YYYY > HH:mm:ss} | {level} | {message} | {extra}"
-)
 logger.disable("mylib")
 log_path = "log.txt"
 num_filtered_records = 0
@@ -510,6 +507,10 @@ def json_example():
 
 
 if __name__ == "__main__":
+    default_logging_format = (
+        "{time:MMMM D, YYYY > HH:mm:ss} | {level} | {message} | {extra}"
+    )
+
     logger.enable("mylib")
     logger.remove()
     logger.add(
@@ -519,7 +520,11 @@ if __name__ == "__main__":
         enqueue=True,
         backtrace=True,
         diagnose=True,
-        format=logging_format,
+        format=default_logging_format,
+    )
+
+    console_output_format = (
+        "{message}"
     )
 
     logger.add(
@@ -528,7 +533,7 @@ if __name__ == "__main__":
         enqueue=True,
         backtrace=True,
         diagnose=True,
-        format=logging_format,
+        format=console_output_format,
         filter=level_filter("INFO", "SUCCESS"),
     )
 
