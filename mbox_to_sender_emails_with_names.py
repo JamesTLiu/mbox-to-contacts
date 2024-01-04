@@ -392,7 +392,22 @@ def get_contact_emails_with_names_from_mbox(
 
     if dump_fields_to_json:
         mbox_path = Path(mbox_file_path)
-        dump_json_path = mbox_path.parent / (mbox_path.stem + " - fields.json")
+        field_types = []
+
+        if omit_from_fields and omit_to_fields:
+            field_types.append("No")
+        else:
+            if not omit_from_fields:
+                field_types.append("From")
+
+            if not omit_to_fields:
+                field_types.append("To")
+
+        field_types_str = " ".join(field_types)
+
+        dump_json_path = mbox_path.parent / (
+            mbox_path.stem + " - " + field_types_str + " fields.json"
+        )
 
         _dump_to_json_file(fields, dump_json_path)
         logger.info(f"mbox fields written to '{dump_json_path.resolve()}'")
