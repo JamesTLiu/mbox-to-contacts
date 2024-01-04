@@ -213,7 +213,8 @@ def _parse_mbox_file_to_contacts_fields_list(
                 contacts_list.append(email_data.email_from)
             else:
                 logger.warning(
-                    f"skipping mbox message - empty 'From:' field: {email_obj}"
+                    "skipping mbox message - empty 'From:' field:"
+                    f" {email_data}"
                 )
 
         if not omit_to_fields:
@@ -221,7 +222,7 @@ def _parse_mbox_file_to_contacts_fields_list(
                 contacts_list.append(email_data.email_to)
             else:
                 logger.warning(
-                    f"skipping mbox message - empty 'To:' field: {email_obj}"
+                    f"skipping mbox message - empty 'To:' field: {email_data}"
                 )
 
     logger.info(f"entries in '{mbox_file_path}': {num_entries}")

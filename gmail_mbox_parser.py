@@ -63,6 +63,16 @@ class GmailMboxMessage:
             msg_text = None
         return (content_type, encoding, msg_text)
 
+    def __str__(self) -> str:
+        if not hasattr(self, "email_labels"):
+            self.parse_email()
+
+        return (
+            f"X-Gmail-Labels: {self.email_labels}, Date: {self.email_date},"
+            f" From: {self.email_from}, To: {self.email_to}, Subject:"
+            f" {self.email_subject}."
+        )
+
 
 ######################### End of library, example of use below
 
