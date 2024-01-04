@@ -129,9 +129,10 @@ def _mbox_fields_to_email_and_names_dict(
             )
 
         if not match:
-            raise ValueError(
-                f"No sender name + email found in sender field: {sender}"
+            print(
+                f"Skipping - No sender name + email found in field: {sender}"
             )
+            continue
 
         email = match.group("email").strip()
         sender_name = match.group("sender_name").strip()
