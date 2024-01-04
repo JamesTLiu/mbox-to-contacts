@@ -99,7 +99,7 @@ def _ensure_existing_json_file(path: Path | str) -> None:
     _ensure_existing_file(path, suffix=".json")
 
 
-def _mbox_sender_fields_to_email_and_names_dict(
+def _mbox_fields_to_email_and_names_dict(
     mbox_sender_fields: Iterable[str],
 ) -> defaultdict[str, set]:
     """Convert mbox sender fields to a dict mapping emails to their set
@@ -185,7 +185,7 @@ def _parse_mbox_file_to_sender_list(mbox_file_path: str) -> list[str]:
     return sender_list
 
 
-def _mbox_sender_fields_to_sender_emails_with_names(
+def _mbox_fields_to_emails_with_names(
     mbox_sender_fields: Iterable[str], out_file_path: str | Path | None = None
 ) -> list[tuple[str, tuple]]:
     """Convert mbox sender fields to a list of (email, sender_names)
@@ -205,7 +205,7 @@ def _mbox_sender_fields_to_sender_emails_with_names(
         list[tuple[str, tuple]]: A list of (email, sender_names) tuples.
             sender_names is a tuple with all sender names for the email.
     """
-    email_to_sender_names = _mbox_sender_fields_to_email_and_names_dict(
+    email_to_sender_names = _mbox_fields_to_email_and_names_dict(
         mbox_sender_fields
     )
     hashable_email_to_sender_names = _dict_with_set_to_hashable(
@@ -269,14 +269,14 @@ def _mbox_sender_fields_to_sender_emails_with_names(
     if out_file_path:
         _dump_to_json_file(sender_emails_with_sender_names, out_file_path)
         print(
-            "mbox 'From' email addresses with their sender names written to"
+            "mbox email addresses with their names written to"
             f" '{Path(out_file_path).resolve()}"
         )
 
     return sender_emails_with_sender_names
 
 
-def json_mbox_sender_fields_to_sender_emails_with_names(
+def get_contact_emails_with_names_from_json_with_mbox_fields(
     json_file_path: str, out_file_path: str | Path | None = None
 ) -> list[tuple[str, tuple]]:
     """Import mbox sender fields from a json file and convert them into
@@ -301,15 +301,15 @@ def json_mbox_sender_fields_to_sender_emails_with_names(
 
     sender_fields = _load_json(json_file_path)
 
-    return _mbox_sender_fields_to_sender_emails_with_names(
+    return _mbox_fields_to_emails_with_names(
         sender_fields, out_file_path
     )
 
 
-def get_sender_emails_with_names_from_mbox(
+def get_contact_emails_with_names_from_mbox(
     mbox_file_path: str,
     out_file_path: str | Path | None = "contacts.json",
-    dump_sender_fields_to_json=False,
+    dump_fields_to_json=False,
 ) -> list[tuple[str, tuple]]:
     """Return a list of (email, sender_names) tuples for the messages in
     the mbox file. sender_names is a tuple with all sender names for the
@@ -318,10 +318,11 @@ def get_sender_emails_with_names_from_mbox(
     Args:
         mbox_file_path (str): The path to the mbox file.
         out_file_path (str, Path, optional): The path to the file to
-            write the result to in json if given. Defaults to "".
-        dump_sender_fields_json (bool, optional): If True, the sender
-            fields from the mbox file will be output to a json file.
-            Defaults to None.
+            write the result to in json if given. Defaults to
+            "contacts.json".
+        dump_fields_to_json (bool, optional): If True, the fields from
+            the mbox file will be output to a json file. Defaults to
+            None.
 
     Returns:
         list[tuple[str, tuple]]: A list of (email, sender_names) tuples.
@@ -334,16 +335,16 @@ def get_sender_emails_with_names_from_mbox(
 
     sender_fields = _parse_mbox_file_to_sender_list(mbox_file_path)
 
-    if dump_sender_fields_to_json:
+    if dump_fields_to_json:
         mbox_path = Path(mbox_file_path)
         dump_json_path = mbox_path.parent / (
-            mbox_path.stem + " - sender fields.json"
+            mbox_path.stem + " - fields.json"
         )
 
         _dump_to_json_file(sender_fields, dump_json_path)
-        print(f"mbox sender fields written to '{dump_json_path.resolve()}'")
+        print(f"mbox fields written to '{dump_json_path.resolve()}'")
 
-    return _mbox_sender_fields_to_sender_emails_with_names(
+    return _mbox_fields_to_emails_with_names(
         sender_fields, out_file_path
     )
 
@@ -353,9 +354,9 @@ def get_sender_emails_with_names_from_mbox(
 
 def mbox_example():
     # Use a .mbox file.
-    emails_with_names = get_sender_emails_with_names_from_mbox(
+    emails_with_names = get_contact_emails_with_names_from_mbox(
         "All mail Including Spam and Trash.mbox",
-        dump_sender_fields_to_json=True,
+        dump_fields_to_json=True,
     )
 
 
@@ -363,7 +364,7 @@ def json_example():
     # Use a previously created fields .json file instead of
     # reparsing the .mbox file for efficiency
     emails_with_names = (
-        json_mbox_sender_fields_to_sender_emails_with_names(
+        get_contact_emails_with_names_from_json_with_mbox_fields(
             "All mail Including Spam and Trash - fields.json",
         )
     )
