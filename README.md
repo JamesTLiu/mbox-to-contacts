@@ -1,7 +1,7 @@
 # Extract Contact Emails with Names from an MBOX File
-A script to parse a `.mbox` file into `.json` file with contact email addresses and their associated names. Email addresses in the `.json` file are sorted so that email addressses with similar domains are close together.
+A script to parse contacts from a `.mbox` file generated from an email box. Extracted contacts will be in the form of a `.json` file with contact email addresses and their associated names and a `.json` file with only contact email addresses. Email addresses in the `.json` files are sorted so that email addressses with similar domains are close together.
 
-## Getting an MBOX File for a GMAIL account
+## Get an MBOX File for a GMAIL account
 Use [Google Takeout](https://takeout.google.com/settings/takeout/custom/gmail) to download your Mail data in MBOX format.
 
 * Keep the default setting which is "All Mail data included" (click the setting and select "Include all messages in Mail" if it shows otherwise).
