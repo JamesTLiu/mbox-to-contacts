@@ -299,11 +299,9 @@ def get_contact_emails_with_names_from_json_with_mbox_fields(
 
     _ensure_existing_json_file(json_file_path)
 
-    sender_fields = _load_json(json_file_path)
+    fields = _load_json(json_file_path)
 
-    return _mbox_fields_to_emails_with_names(
-        sender_fields, out_file_path
-    )
+    return _mbox_fields_to_emails_with_names(fields, out_file_path)
 
 
 def get_contact_emails_with_names_from_mbox(
