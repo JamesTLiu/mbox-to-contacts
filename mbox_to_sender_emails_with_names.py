@@ -304,10 +304,24 @@ def _mbox_fields_to_emails_with_names(
     if not out_file_path:
         out_file_path = DEFAULT_OUT_PATH
 
+    out_file_path = Path(out_file_path)
+
     _dump_to_json_file(emails_with_names, out_file_path)
     logger.info(
         "mbox email addresses with their names written to"
-        f" '{Path(out_file_path).resolve()}"
+        f" '{out_file_path.resolve()}"
+    )
+
+    emails_only_out_file_path = out_file_path.with_stem(
+        "emails only - " + out_file_path.stem
+    )
+
+    emails_only = tuple(email for email, _ in emails_with_names)
+
+    _dump_to_json_file(emails_only, emails_only_out_file_path)
+    logger.info(
+        "mbox email addresses written to"
+        f" '{emails_only_out_file_path.resolve()}"
     )
 
     return emails_with_names
