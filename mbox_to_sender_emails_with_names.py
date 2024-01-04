@@ -3,7 +3,7 @@ import mailbox
 import re
 from pathlib import Path
 from collections import defaultdict
-from typing import *
+from typing import Any, Iterable, Generator
 import sys
 import logging
 from loguru import logger
@@ -124,25 +124,21 @@ def _ensure_existing_json_file(path: Path | str) -> None:
 def _mbox_fields_to_email_and_names_dict(
     mbox_fields: Iterable[str],
 ) -> defaultdict[str, set]:
-    """Convert mbox sender fields to a dict mapping emails to their set
-    of sender names.
+    """Convert mbox messages to a dict mapping emails to their
+    associated names.
 
     Args:
-        mbox_fields (Iterable[str]): The sender fields of an
-            mbox file.
-
-    Raises:
-        ValueError: No sender name + email found in sender field.
+        mbox_fields (Iterable[str]): The fields of a .mbox file.
 
     Returns:
-        defaultdict[str, set]: A dict mapping emails to their set of
-            sender names.
+        defaultdict[str, set]: A dict mapping emails to their associated
+            names.
     """
     email_to_names = defaultdict(set)
 
-    for sender in mbox_fields:
+    for field in mbox_fields:
         matches = re.finditer(
-            r"(?P<name>[^<>,]*)[<]*(?P<email>[\w.]+@[\w.]+)", sender
+            r"(?P<name>[^<>,]*)[<]*(?P<email>[\w.]+@[\w.]+)", field
         )
 
         exists_match = False
@@ -159,43 +155,41 @@ def _mbox_fields_to_email_and_names_dict(
             exists_match = True
 
         if not exists_match:
-            logger.warning(
-                f"Skipping - No sender name + email found in field: {sender}"
-            )
+            logger.warning(f"Skipping - No email(s) found in field: {field}")
             continue
 
     return email_to_names
 
 
 def _dict_with_set_to_hashable(
-    email_to_sender_name: dict[str, set]
-) -> Generator[tuple[str, tuple], None, None]:
+    email_to_name: dict[str, set[str]]
+) -> Generator[tuple[str, tuple[str, ...]], None, None]:
     """Return a hashable version of a dict mapping emails to their
-    set of sender names.
+    associated names.
 
     Args:
-        email_to_sender_name (dict[str, set]): A dict mapping emails to a
-            their set of sender names.
+        email_to_name (dict[str, set]): A dict mapping emails to
+            their associated names.
 
     Yields:
         Generator[tuple[str, tuple], None, None]: _description_
     """
-    return (
-        (email, tuple(sender_names))
-        for email, sender_names in email_to_sender_name.items()
-    )
+    return ((email, tuple(names)) for email, names in email_to_name.items())
 
 
 def _parse_mbox_file_to_contacts_fields_list(
     mbox_file_path: str, omit_from_fields=False, omit_to_fields=False
 ) -> list[str]:
-    """Return a list with the 'From' and 'To' fields in the mbox file.
+    """Return a list with the "From" and "To" fields in the mbox file.
 
     Args:
         mbox_file_path (str): The path to the mbox file.
-
+        omit_from_fields (bool, optional): If True, "From" fields will
+            be ignored. Defaults to False.
+        omit_to_fields (bool, optional): If True, "To" fields will
+            be ignored. Defaults to False.
     Returns:
-        list[str]: A list with the sender fields in the mbox file.
+        list[str]: A list with the fields in the mbox file.
     """
     mb = mailbox.mbox(mbox_file_path)
     num_entries = len(mb)
@@ -213,8 +207,7 @@ def _parse_mbox_file_to_contacts_fields_list(
                 contacts_list.append(email_data.email_from)
             else:
                 logger.warning(
-                    "skipping mbox message - empty 'From:' field:"
-                    f" {email_data}"
+                    f"skipping mbox message - empty 'From:': {email_data}"
                 )
 
         if not omit_to_fields:
@@ -222,7 +215,7 @@ def _parse_mbox_file_to_contacts_fields_list(
                 contacts_list.append(email_data.email_to)
             else:
                 logger.warning(
-                    f"skipping mbox message - empty 'To:' field: {email_data}"
+                    f"skipping mbox message - empty 'To:': {email_data}"
                 )
 
     logger.info(f"entries in '{mbox_file_path}': {num_entries}")
@@ -230,42 +223,38 @@ def _parse_mbox_file_to_contacts_fields_list(
 
 
 def _mbox_fields_to_emails_with_names(
-    mbox_sender_fields: Iterable[str], out_file_path: str | Path | None = None
+    mbox_fields: Iterable[str], out_file_path: str | Path | None = None
 ) -> list[tuple[str, tuple]]:
-    """Convert mbox sender fields to a list of (email, sender_names)
-    tuples. List is sorted by the @... portion of the email and then the
-    email itself. Optionally, writes the result to a file if given.
+    """Convert mbox fields to a list of (email, names) tuples.
+    List is sorted by the domain components in reverse and then by the
+    full email address. Writes the result to the specified path or to a
+    default path if no path is given.
 
     Args:
-        mbox_sender_fields (Iterable[str]): The sender fields from mbox
-            messages.
+        mbox_fields (Iterable[str]): The fields from mbox messages.
         out_file_path (str, Path, optional): The path to the file to
             write the result to in json. If no path is given,
-            DEFAULT_OUT_PATH will be used. Defaults to None.
+            a default path will be used. Defaults to None.
 
     Raises:
         ValueError: @ not found in an email.
 
     Returns:
-        list[tuple[str, tuple]]: A list of (email, sender_names) tuples.
-            sender_names is a tuple with all sender names for the email.
+        list[tuple[str, tuple]]: A list of (email, names) tuples.
+            names is a tuple with all names for the email.
     """
-    email_to_sender_names = _mbox_fields_to_email_and_names_dict(
-        mbox_sender_fields
-    )
-    hashable_email_to_sender_names = _dict_with_set_to_hashable(
-        email_to_sender_names
-    )
+    email_to_names = _mbox_fields_to_email_and_names_dict(mbox_fields)
+    hashable_email_to_names = _dict_with_set_to_hashable(email_to_names)
 
-    def to_domain_and_email(
-        email_with_sender_names: tuple[str, Any]
-    ) -> tuple[str, str]:
-        """Return a tuple as (domain, email) given a tuple with
-        (email, sender_names).
+    def to_domain_components_and_email(
+        email_with_names: tuple[str, tuple[str, ...]]
+    ) -> tuple[str, ...]:
+        """Return  the domain components in reverse followed by the
+        email given the email and its associated names).
 
         Args:
-            email_with_sender_names (tuple[str, Any]): tuple as
-                (email, sender_names).
+            email_with_names (tuple[str, tuple[str, ...]]): tuple as
+                (email, names).
 
         Raises:
             ValueError: Invalid email: no @ in the email.
@@ -275,10 +264,10 @@ def _mbox_fields_to_emails_with_names(
                 @).
 
         Returns:
-            tuple[str, str]: A tuple as
-                (part after the @ in an email, email).
+            tuple[str, ...]: A tuple with the domain components in
+                reverse followed by the email.
         """
-        email, _ = email_with_sender_names
+        email, _ = email_with_names
         email = email.strip().lower()
         num_ats = email.count("@")
 
@@ -307,39 +296,41 @@ def _mbox_fields_to_emails_with_names(
 
         return (*domain_parts, email)
 
-    sender_emails_with_sender_names = sorted(
-        hashable_email_to_sender_names, key=to_domain_and_email
+    emails_with_names = sorted(
+        hashable_email_to_names, key=to_domain_components_and_email
     )
 
     if not out_file_path:
         out_file_path = DEFAULT_OUT_PATH
 
-    _dump_to_json_file(sender_emails_with_sender_names, out_file_path)
+    _dump_to_json_file(emails_with_names, out_file_path)
     logger.info(
         "mbox email addresses with their names written to"
         f" '{Path(out_file_path).resolve()}"
     )
 
-    return sender_emails_with_sender_names
+    return emails_with_names
 
 
 def get_contact_emails_with_names_from_json_with_mbox_fields(
     json_file_path: str, out_file_path: str | Path | None = None
-) -> list[tuple[str, tuple]]:
-    """Import mbox sender fields from a json file and convert them into
-    a list of (email, sender_names) tuples. List is sorted by the @...
-    portion of the email and then the email itself. Optionally, writes
-    the result to a file if given.
+) -> list[tuple[str, tuple[str, ...]]]:
+    """Import mbox fields from a json file and convert them into
+    a list of (email, names) tuples. List is sorted by the domain
+    components in reverse, then by email. Writes the result to the
+    specified path or to a default path if no path is given.
 
     Args:
         json_file_path (str): File path for the json file with a list of
-            senders (str) of mbox messages.
+            fields (str) from mbox messages.
         out_file_path (str, Path, optional): The path to the file to
-            write the result to in json if given. Defaults to None.
+            write the result to in json. If no path is given, a default
+            path will be used. Defaults to None.
 
     Returns:
-        list[tuple[str, tuple]]: A list of (email, sender_names) tuples.
-            sender_names is a tuple with all sender names for the email.
+        list[tuple[str, tuple[str, ...]]]: A list of (email, names)
+            tuples. names is a tuple with all names associated with the
+            email.
     """
     if out_file_path:
         _ensure_is_file(out_file_path)
@@ -357,23 +348,24 @@ def get_contact_emails_with_names_from_mbox(
     dump_fields_to_json=False,
     omit_from_fields: bool = False,
     omit_to_fields: bool = False,
-) -> list[tuple[str, tuple]]:
-    """Return a list of (email, sender_names) tuples for the messages in
-    the mbox file. sender_names is a tuple with all sender names for the
-    email.
+) -> list[tuple[str, tuple[str, ...]]]:
+    """Return a list of (email, names) tuples for the messages in
+    the mbox file. names is a tuple with all names associated
+    with the email.
 
     Args:
         mbox_file_path (str): The path to the mbox file.
         out_file_path (str, Path, optional): The path to the file to
-            write the result to in json if given. Defaults to
-            "contacts.json".
+            write the result to in json. If no path is given, a default
+            path will be used.Defaults to None.
         dump_fields_to_json (bool, optional): If True, the fields from
             the mbox file will be output to a json file. Defaults to
             None.
 
     Returns:
-        list[tuple[str, tuple]]: A list of (email, sender_names) tuples.
-            sender_names is a tuple with all sender names for the email.
+        list[tuple[str, tuple[str, ...]]]: A list of (email, names)
+            tuples. names is a tuple with all names associated with the
+            email.
     """
     if out_file_path:
         _ensure_is_file(out_file_path)
@@ -381,7 +373,10 @@ def get_contact_emails_with_names_from_mbox(
     _ensure_existing_mbox_file(mbox_file_path)
 
     if omit_from_fields and omit_to_fields:
-        logger.warning(f"Warning: From and To fields have both been omitted.")
+        logger.warning(
+            "Warning: 'From' and 'To' fields have both been omitted from the"
+            " results."
+        )
         return []
 
     fields = _parse_mbox_file_to_contacts_fields_list(
@@ -415,7 +410,7 @@ def get_contact_emails_with_names_from_mbox(
     return _mbox_fields_to_emails_with_names(fields, out_file_path)
 
 
-######################### End of library, example of use below
+################ End of library, example of use below ################
 
 
 def mbox_from_to_fields_example():
@@ -435,8 +430,8 @@ def mbox_from_to_fields_and_dump_fields_to_json_example():
 
 
 def mbox_from_field_example():
-    # Get only "From" contacts from a .mbox file and dump "From" fields to a
-    # .json file.
+    # Get only "From" contacts from a .mbox file and dump "From" fields
+    # to a .json file.
     emails_with_names = get_contact_emails_with_names_from_mbox(
         "All mail Including Spam and Trash.mbox",
         omit_to_fields=True,
