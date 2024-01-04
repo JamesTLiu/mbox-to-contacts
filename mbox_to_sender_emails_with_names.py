@@ -31,6 +31,11 @@ logger.add(
 DEFAULT_OUT_PATH = "contacts.json"
 
 
+@logger.catch(reraise=True)
+def main():
+    mbox_from_to_fields_example()
+
+
 def _load_json(json_file_path: str) -> Any:
     """Deserialize data in a json file to a Python object.
 
@@ -471,3 +476,7 @@ def json_example():
             "All mail Including Spam and Trash - From To fields.json",
         )
     )
+
+
+if __name__ == "__main__":
+    main()
