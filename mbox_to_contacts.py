@@ -58,10 +58,8 @@ def main():
         # Use a previously created fields .json file (in this case with
         # "From" and "To" fields) instead of reparsing the .mbox file
         # for efficiency.
-        return (
-            get_contact_emails_with_names_from_json_with_mbox_fields(
-                "All mail Including Spam and Trash - From To fields.json",
-            )
+        return get_contact_emails_with_names_from_json_with_mbox_fields(
+            "All mail Including Spam and Trash - From To fields.json",
         )
 
     mbox_from_to_fields_example()
@@ -332,8 +330,7 @@ def _mbox_fields_to_emails_with_names(
 
         Raises:
             ValueError: Invalid email: no @ in the email.
-            ValueError: Invalid email: more than 1 @ in email section
-                and unable to extract the 1st email.
+            ValueError: Invalid email: more than 1 @ in email.
             ValueError: Invalid email: no domain found (nothing after
                 @).
 
@@ -348,15 +345,7 @@ def _mbox_fields_to_emails_with_names(
         if num_ats < 1:
             raise ValueError(f"Invalid email: no @ in the email: '{email}'")
         elif num_ats > 1:
-            m = re.search(r"[\w.\-]+@[\w.\-]+", email)
-
-            if m:
-                email = m.group()
-            else:
-                raise ValueError(
-                    "more than 1 @ in email section and unable to extract"
-                    f" the 1st email: '{email}'"
-                )
+            raise ValueError("Invalid email: more than 1 @ in the email!")
 
         domain = email.split("@")[1]
 
