@@ -164,8 +164,10 @@ def _dict_with_set_to_hashable(
     )
 
 
-def _parse_mbox_file_to_sender_list(mbox_file_path: str) -> list[str]:
-    """Return a list with the sender fields in the mbox file.
+def _parse_mbox_file_to_contacts_list(
+    mbox_file_path: str, omit_from_fields=False, omit_to_fields=False
+) -> list[str]:
+    """Return a list with the 'From' and 'To' fields in the mbox file.
 
     Args:
         mbox_file_path (str): The path to the mbox file.
@@ -175,15 +177,33 @@ def _parse_mbox_file_to_sender_list(mbox_file_path: str) -> list[str]:
     """
     mb = mailbox.mbox(mbox_file_path)
     num_entries = len(mb)
-    sender_list = []
+    contacts_list = []
+
+    if omit_from_fields and omit_to_fields:
+        return contacts_list
 
     for email_obj in mb:
         email_data = GmailMboxMessage(email_obj)
         email_data.parse_email()
-        sender_list.append(email_data.email_from)
+
+        if not omit_from_fields:
+            if email_data.email_from:
+                contacts_list.append(email_data.email_from)
+            else:
+                print(
+                    f"skipping mbox message - empty 'From:' field: {email_obj}"
+                )
+
+        if not omit_to_fields:
+            if email_data.email_to:
+                contacts_list.append(email_data.email_to)
+            else:
+                print(
+                    f"skipping mbox message - empty 'To:' field: {email_obj}"
+                )
 
     print(f"entries in '{mbox_file_path}': {num_entries}")
-    return sender_list
+    return contacts_list
 
 
 def _mbox_fields_to_emails_with_names(
@@ -309,6 +329,8 @@ def get_contact_emails_with_names_from_mbox(
     mbox_file_path: str,
     out_file_path: str | Path | None = "contacts.json",
     dump_fields_to_json=False,
+    omit_from_fields: bool = False,
+    omit_to_fields: bool = False,
 ) -> list[tuple[str, tuple]]:
     """Return a list of (email, sender_names) tuples for the messages in
     the mbox file. sender_names is a tuple with all sender names for the
@@ -332,20 +354,20 @@ def get_contact_emails_with_names_from_mbox(
 
     _ensure_existing_mbox_file(mbox_file_path)
 
-    sender_fields = _parse_mbox_file_to_sender_list(mbox_file_path)
+    fields = _parse_mbox_file_to_contacts_list(
+        mbox_file_path,
+        omit_from_fields=omit_from_fields,
+        omit_to_fields=omit_to_fields,
+    )
 
     if dump_fields_to_json:
         mbox_path = Path(mbox_file_path)
-        dump_json_path = mbox_path.parent / (
-            mbox_path.stem + " - fields.json"
-        )
+        dump_json_path = mbox_path.parent / (mbox_path.stem + " - fields.json")
 
-        _dump_to_json_file(sender_fields, dump_json_path)
+        _dump_to_json_file(fields, dump_json_path)
         print(f"mbox fields written to '{dump_json_path.resolve()}'")
 
-    return _mbox_fields_to_emails_with_names(
-        sender_fields, out_file_path
-    )
+    return _mbox_fields_to_emails_with_names(fields, out_file_path)
 
 
 ######################### End of library, example of use below
