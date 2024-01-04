@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import json
 import mailbox
 import re
@@ -6,34 +8,61 @@ from collections import defaultdict
 from typing import Any, Iterable, Generator
 import sys
 import logging
+from contextlib import contextmanager
+import loguru
 from loguru import logger
 from gmail_mbox_parser import GmailMboxMessage
 
-logger.remove()
-logger.add(
-    "log.txt",
-    mode="w",
-    level=logging.DEBUG,
-    enqueue=True,
-    backtrace=True,
-    diagnose=True,
+
+logging_format = (
+    "{time:MMMM D, YYYY > HH:mm:ss} | {level} | {message} | {extra}"
 )
-
-logger.add(
-    sys.stdout,
-    level=logging.DEBUG,
-    enqueue=True,
-    backtrace=True,
-    diagnose=True,
-)
-
-
+logger.disable("mylib")
+log_path = "log.txt"
+num_filtered_records = 0
 DEFAULT_OUT_PATH = "contacts.json"
 
 
 @logger.catch(reraise=True)
 def main():
     mbox_from_to_fields_example()
+
+
+def track_num_filtered(fn: loguru.FilterFunction):
+    def inner(*args, **kwargs):
+        passes_filter = fn(*args, **kwargs)
+
+        if not passes_filter:
+            global num_filtered_records
+            num_filtered_records += 1
+
+        return passes_filter
+
+    return inner
+
+
+def level_filter(*levels: str) -> loguru.FilterFunction:
+    """Return a filter function for logging handlers that only allows
+    records with the specified log levels"""
+
+    @track_num_filtered
+    def is_level(record: loguru.Record) -> bool:
+        return record["level"].name in levels
+
+    return is_level
+
+
+@contextmanager
+def print_warnings_summary():
+    try:
+        yield
+    finally:
+        if num_filtered_records:
+            logger.info(
+                f"{num_filtered_records} warnings found! Please check the log"
+                " file to avoid missing potential contacts:"
+                f" {Path(log_path).resolve()}."
+            )
 
 
 def _load_json(json_file_path: str) -> Any:
@@ -332,6 +361,7 @@ def _mbox_fields_to_emails_with_names(
     return emails_with_names
 
 
+@print_warnings_summary()
 def get_contact_emails_with_names_from_json_with_mbox_fields(
     json_file_path: str, out_file_path: str | Path | None = None
 ) -> list[tuple[str, tuple[str, ...]]]:
@@ -362,6 +392,7 @@ def get_contact_emails_with_names_from_json_with_mbox_fields(
     return _mbox_fields_to_emails_with_names(fields, out_file_path)
 
 
+@print_warnings_summary()
 def get_contact_emails_with_names_from_mbox(
     mbox_file_path: str,
     out_file_path: str | Path | None = None,
@@ -479,4 +510,26 @@ def json_example():
 
 
 if __name__ == "__main__":
+    logger.enable("mylib")
+    logger.remove()
+    logger.add(
+        log_path,
+        mode="w",
+        level=logging.DEBUG,
+        enqueue=True,
+        backtrace=True,
+        diagnose=True,
+        format=logging_format,
+    )
+
+    logger.add(
+        sys.stdout,
+        level=logging.DEBUG,
+        enqueue=True,
+        backtrace=True,
+        diagnose=True,
+        format=logging_format,
+        filter=level_filter("INFO", "SUCCESS"),
+    )
+
     main()
