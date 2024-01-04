@@ -523,9 +523,7 @@ if __name__ == "__main__":
         format=default_logging_format,
     )
 
-    console_output_format = (
-        "{message}"
-    )
+    console_output_format = "{message}"
 
     logger.add(
         sys.stdout,
