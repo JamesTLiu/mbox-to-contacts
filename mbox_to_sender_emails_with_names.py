@@ -400,10 +400,36 @@ def get_contact_emails_with_names_from_mbox(
 
 
 def mbox_example():
-    # Use a .mbox file.
+    # Get "From" and "To" contacts from a .mbox file.
+    emails_with_names = get_contact_emails_with_names_from_mbox(
+        "All mail Including Spam and Trash.mbox",
+    )
+
+
+def mbox_and_dump_fields_to_json_example():
+    # Get "From" and "To" contacts from a .mbox file and dump "From" and
+    # "To" fields to a .json file.
     emails_with_names = get_contact_emails_with_names_from_mbox(
         "All mail Including Spam and Trash.mbox",
         dump_fields_to_json=True,
+    )
+
+
+def mbox_example2():
+    # Get only "From" contacts from a .mbox file and dump "From" fields to a
+    # .json file.
+    emails_with_names = get_contact_emails_with_names_from_mbox(
+        "All mail Including Spam and Trash.mbox",
+        omit_to_fields=True,
+    )
+
+
+def mbox_example3():
+    # Get only "To" contacts from a .mbox file and dump "To" fields to a
+    # .json file.
+    emails_with_names = get_contact_emails_with_names_from_mbox(
+        "All mail Including Spam and Trash.mbox",
+        omit_from_fields=True,
     )
 
 
