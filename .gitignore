@@ -161,3 +161,4 @@ cython_debug/
 
 *.mbox
 *.json
+*log.txt
