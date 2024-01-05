@@ -12,6 +12,8 @@ from contextlib import contextmanager
 import loguru
 from loguru import logger
 from gmail_mbox_parser import GmailMboxMessage
+import vobject
+from vobject import vcard
 
 
 logger.disable("mylib")
@@ -127,6 +129,32 @@ def _dump_to_json_file(data: Any, file_path: str | Path) -> None:
         json.dump(data, file)
 
 
+def _dump_to_vcf_file(
+    data: list[tuple[str, tuple[str, ...]]], file_path: str | Path
+) -> None:
+    with open(Path(file_path), "w", newline="") as file:
+        for email, names in data:
+            # all_valid_chars = re.compile(r"(?i)^[-a-z0-9]+$")
+            invalid_chars = re.compile(r"[.;:\n\r]")
+            valid_names = [
+                name for name in names if not invalid_chars.search(name)
+            ]
+            j = vobject.vCard()
+            name = valid_names[0] if valid_names else "No name"
+            j.add("n")
+            j.n.value = vcard.Name(name)
+            j.add("fn")
+            j.fn.value = name
+            j.add("email")
+            j.email.value = email
+            # j.email.type_param = "INTERNET"
+            j.add("note")
+            j.note.value = r"\, ".join(valid_names)
+            # vcard_serialized = j.serialize().rstrip("\n")
+            vcard_serialized = j.serialize()
+            file.write(vcard_serialized)
+
+
 def _ensure_is_file(path: Path | str, must_exist=False) -> None:
     """Ensure that the path is to an existing file if must_exist is
     True. Ensure that the path is to an existing file or doesn't exist
@@ -208,10 +236,13 @@ def _mbox_fields_to_email_and_names_dict(
     """
     email_to_names = defaultdict(set)
 
+    name_regex = r"(?P<name>[^<>,]*?)[<]?"
+    # https://stackabuse.com/python-validate-email-address-with-regular-expressions-regex/
+    email_regex = r"(?P<email>([-!#-'*+/-9=?A-Z^-~]+(\.[-!#-'*+/-9=?A-Z^-~]+)*|\"([]!#-[^-~ \t]|(\\[\t -~]))+\")@([-!#-'*+/-9=?A-Z^-~]+(\.[-!#-'*+/-9=?A-Z^-~]+)*|\[[\t -Z^-~]*]))"  # noqa: E501
+    name_email_regex = name_regex + email_regex
+
     for field in mbox_fields:
-        matches = re.finditer(
-            r"(?P<name>[^<>,]*)[<]*(?P<email>[\w.]+@[\w.]+)", field
-        )
+        matches = re.finditer(name_email_regex, field)
 
         exists_match = False
 
@@ -385,6 +416,11 @@ def _mbox_fields_to_emails_with_names(
         "contact email addresses written to"
         f" '{emails_only_out_file_path.resolve()}"
     )
+
+    vcf_out_file_path = out_file_path.with_name("contacts.vcf")
+
+    _dump_to_vcf_file(emails_with_names, vcf_out_file_path)
+    logger.info(f"contact vCards written to '{vcf_out_file_path.resolve()}")
 
     return emails_with_names
 
