@@ -337,8 +337,15 @@ def _mbox_fields_to_emails_with_names(
 ) -> list[tuple[str, tuple]]:
     """Convert mbox fields to a list of (email, names) tuples.
     List is sorted by the domain components in reverse and then by the
-    full email address. Writes the result to the specified path or to a
-    default path if no path is given.
+    full email address. Writes the results to files based on the
+    specified path or based on the default path if no path is given.
+
+    Result files: a json file with contact email addresses and their
+    associated names, a json file with only contact email addresses, and
+    a vCard (vcf) file with contact email addresses and their
+    associated names (all associated names will be in the Notes property
+    while only the first name will be used for the Full Name (FN)
+    property).
 
     Args:
         mbox_fields (Iterable[str]): The fields from mbox messages.
@@ -441,6 +448,13 @@ def get_contact_emails_with_names_from_json_with_mbox_fields(
     components in reverse, then by email. Writes the result to the
     specified path or to a default path if no path is given.
 
+    Result files: a json file with contact email addresses and their
+    associated names, a json file with only contact email addresses, and
+    a vCard (vcf) file with contact email addresses and their
+    associated names (all associated names will be in the Notes property
+    while only the first name will be used for the Full Name (FN)
+    property).
+
     Args:
         json_file_path (str): File path for the json file with a list of
             fields (str) from mbox messages.
@@ -474,6 +488,13 @@ def get_contact_emails_with_names_from_mbox(
     """Return a list of (email, names) tuples for the messages in
     the mbox file. names is a tuple with all names associated
     with the email.
+
+    Result files: a json file with contact email addresses and their
+    associated names, a json file with only contact email addresses, and
+    a vCard (vcf) file with contact email addresses and their
+    associated names (all associated names will be in the Notes property
+    while only the first name will be used for the Full Name (FN)
+    property).
 
     Args:
         mbox_file_path (str): The path to the mbox file.
