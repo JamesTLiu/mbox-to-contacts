@@ -370,7 +370,7 @@ def _mbox_fields_to_emails_with_names(
 
     _dump_to_json_file(emails_with_names, out_file_path)
     logger.info(
-        "mbox email addresses with their names written to"
+        "contact email addresses with their names written to"
         f" '{out_file_path.resolve()}"
     )
 
@@ -382,7 +382,7 @@ def _mbox_fields_to_emails_with_names(
 
     _dump_to_json_file(emails_only, emails_only_out_file_path)
     logger.info(
-        "mbox email addresses written to"
+        "contact email addresses written to"
         f" '{emails_only_out_file_path.resolve()}"
     )
 
