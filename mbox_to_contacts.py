@@ -123,17 +123,25 @@ def _dump_to_json_file(data: Any, file_path: str | Path) -> None:
 
     Args:
         data (Any): Any serializable data.
-        file_path (str | Path): Path for the json file to write to.
+        file_path (str | Path): Path for the output json file.
     """
     with open(Path(file_path), "w") as file:
         json.dump(data, file)
 
 
 def _dump_to_vcf_file(
-    data: list[tuple[str, tuple[str, ...]]], file_path: str | Path
+    emails_with_names: list[tuple[str, tuple[str, ...]]], file_path: str | Path
 ) -> None:
+    """Output emails with names to a vCard (.vcf) file. Overwrites if
+    the file already exists.
+
+    Args:
+        emails_with_names (list[tuple[str, tuple[str, ...]]]): tuple as
+                (email, names).
+        file_path (str | Path): Path for the output vcf file.
+    """
     with open(Path(file_path), "w", newline="") as file:
-        for email, names in data:
+        for email, names in emails_with_names:
             # all_valid_chars = re.compile(r"(?i)^[-a-z0-9]+$")
             invalid_chars = re.compile(r"[.;:\n\r]")
             valid_names = [
@@ -150,7 +158,6 @@ def _dump_to_vcf_file(
             # j.email.type_param = "INTERNET"
             j.add("note")
             j.note.value = r"\, ".join(valid_names)
-            # vcard_serialized = j.serialize().rstrip("\n")
             vcard_serialized = j.serialize()
             file.write(vcard_serialized)
 
