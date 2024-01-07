@@ -145,19 +145,25 @@ def _dump_to_vcf_file(
             # all_valid_chars = re.compile(r"(?i)^[-a-z0-9]+$")
             invalid_chars = re.compile(r"[.;:\n\r]")
             valid_names = [
-                name for name in names if not invalid_chars.search(name)
+                name.strip("'\"") for name in names if not invalid_chars.search(name)
             ]
             j = vobject.vCard()
-            name = valid_names[0] if valid_names else "No name"
+            name = (
+                valid_names[0] if valid_names and valid_names[0] else "No name"
+            )
             j.add("n")
             j.n.value = vcard.Name(name)
             j.add("fn")
             j.fn.value = name
             j.add("email")
-            j.email.value = email
+            j.email.value = email.strip("'\"")
             # j.email.type_param = "INTERNET"
-            j.add("note")
-            j.note.value = r"\, ".join(valid_names)
+            note_value = r"\, ".join(valid_names)
+
+            if note_value:
+                j.add("note")
+                j.note.value = note_value
+
             vcard_serialized = j.serialize()
             file.write(vcard_serialized)
 
