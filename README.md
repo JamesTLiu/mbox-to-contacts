@@ -1,5 +1,7 @@
 # Extract Contact Emails with Names from an MBOX File
-A script to parse contacts from a mailbox (`.mbox`) file exported from an email box. Extracted contacts will be in the form of a `.json` file with contact email addresses and their associated names, a `.json` file with only contact email addresses, and a vCard `.vcf` file with contact email addresses and their associated names. Email addresses in the `.json` files are sorted so that email addressses with similar domains are close together.
+A script to parse contacts from a mailbox (`.mbox`) file. Extracted contacts will be in the form of a `.json` file with contact email addresses and their associated names, a `.json` file with only contact email addresses, and a vCard `.vcf` file with contact email addresses and their associated names. Email addresses in the `.json` files are sorted so that email addressses with similar domains are close together.
+
+Note: A vCard is created for every email address and the associated names of an email address are placed in the `Notes` field while only one of the associated names is used in the `N` (Name) and `FN` (Full Name) fields.
 
 ## Get an MBOX File for a GMAIL account
 Use [Google Takeout](https://takeout.google.com/settings/takeout/custom/gmail) to download your Mail data in MBOX format.
